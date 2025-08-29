@@ -1,0 +1,1358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProjectFlow - Project Management Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3a0ca3;
+            --success: #4cc9f0;
+            --info: #7209b7;
+            --warning: #f72585;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --light-gray: #e9ecef;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fb;
+            color: var(--dark);
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* Sidebar Styles */
+        .sidebar {
+            width: 260px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .logo i {
+            font-size: 28px;
+            margin-right: 10px;
+        }
+        
+        .logo h1 {
+            font-size: 24px;
+            font-weight: 700;
+        }
+        
+        .menu {
+            list-style: none;
+            margin-top: 30px;
+        }
+        
+        .menu li {
+            margin-bottom: 15px;
+        }
+        
+        .menu a {
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        
+        .menu a:hover, .menu a.active {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        
+        .menu i {
+            margin-right: 10px;
+            font-size: 18px;
+        }
+        
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--light-gray);
+        }
+        
+        .header h2 {
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+        
+        .user-info img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+            object-fit: cover;
+        }
+        
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(67, 97, 238, 0.1);
+            color: var(--primary);
+        }
+        
+        .stat-number {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .stat-text {
+            color: var(--gray);
+            font-size: 14px;
+        }
+        
+        /* Charts */
+        .chart-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .chart-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        /* Tasks */
+        .tasks {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+        }
+        
+        .task-list {
+            list-style: none;
+        }
+        
+        .task-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid var(--light-gray);
+        }
+        
+        .task-item:last-child {
+            border-bottom: none;
+        }
+        
+        .task-checkbox {
+            margin-right: 15px;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        
+        .task-content {
+            flex: 1;
+        }
+        
+        .task-title {
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+        
+        .task-details {
+            display: flex;
+            color: var(--gray);
+            font-size: 13px;
+        }
+        
+        .task-details div {
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .task-details i {
+            margin-right: 5px;
+        }
+        
+        .task-priority {
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .priority-high {
+            background-color: rgba(247, 37, 133, 0.1);
+            color: var(--warning);
+        }
+        
+        .priority-medium {
+            background-color: rgba(76, 201, 240, 0.1);
+            color: var(--success);
+        }
+        
+        .priority-low {
+            background-color: rgba(114, 9, 183, 0.1);
+            color: var(--info);
+        }
+        
+        /* Project Progress */
+        .project-progress {
+            margin-top: 10px;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background-color: var(--light-gray);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+        }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 25px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--gray);
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--light-gray);
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary);
+        }
+        
+        /* Page Content */
+        .page-content {
+            display: none;
+        }
+        
+        /* Team Page */
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .team-member {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .team-member img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 15px;
+        }
+        
+        .member-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .member-role {
+            color: var(--gray);
+            margin-bottom: 15px;
+        }
+        
+        .member-stats {
+            display: flex;
+            justify-content: space-around;
+            border-top: 1px solid var(--light-gray);
+            padding-top: 15px;
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-weight: 700;
+            font-size: 18px;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: var(--gray);
+        }
+        
+        /* Settings Page */
+        .settings-category {
+            margin-bottom: 30px;
+        }
+        
+        .settings-header {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--light-gray);
+        }
+        
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .setting-info h4 {
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+        
+        .setting-info p {
+            font-size: 14px;
+            color: var(--gray);
+        }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: var(--primary);
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        
+        /* Analytics Page */
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 80px;
+            }
+            
+            .logo h1, .menu span {
+                display: none;
+            }
+            
+            .logo {
+                justify-content: center;
+            }
+            
+            .menu a {
+                justify-content: center;
+            }
+            
+            .menu i {
+                margin-right: 0;
+            }
+            
+            .analytics-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .user-info {
+                margin-top: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="logo">
+            <i class="fas fa-project-diagram"></i>
+            <h1>ProjectFlow</h1>
+        </div>
+        
+        <ul class="menu">
+            <li><a href="#" class="nav-link active" data-page="dashboard"><i class="fas fa-home"></i> <span>Dashboard</span></a></li>
+            <li><a href="#" class="nav-link" data-page="projects"><i class="fas fa-tasks"></i> <span>Projects</span></a></li>
+            <li><a href="#" class="nav-link" data-page="calendar"><i class="fas fa-calendar-alt"></i> <span>Calendar</span></a></li>
+            <li><a href="#" class="nav-link" data-page="team"><i class="fas fa-users"></i> <span>Team</span></a></li>
+            <li><a href="#" class="nav-link" data-page="analytics"><i class="fas fa-chart-pie"></i> <span>Analytics</span></a></li>
+            <li><a href="#" class="nav-link" data-page="settings"><i class="fas fa-cog"></i> <span>Settings</span></a></li>
+        </ul>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Dashboard Page -->
+        <div id="dashboard" class="page-content" style="display: block;">
+            <!-- Header -->
+            <div class="header">
+                <h2>Project Dashboard</h2>
+                <div class="user-info">
+                    <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="User">
+                    <div>
+                        <div>John Doe</div>
+                        <div style="font-size: 12px; color: var(--gray);">Project Manager</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Stats Cards -->
+            <div class="dashboard-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Active Projects</div>
+                        <div class="card-icon">
+                            <i class="fas fa-folder-open"></i>
+                        </div>
+                    </div>
+                    <div class="stat-number">12</div>
+                    <div class="stat-text">+2 from last week</div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Completed Tasks</div>
+                        <div class="card-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+                    <div class="stat-number">84</div>
+                    <div class="stat-text">+18 from last week</div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Team Members</div>
+                        <div class="card-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                    </div>
+                    <div class="stat-number">24</div>
+                    <div class="stat-text">Currently active</div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Productivity</div>
+                        <div class="card-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                    </div>
+                    <div class="stat-number">87%</div>
+                    <div class="stat-text">+5% from last week</div>
+                </div>
+            </div>
+            
+            <!-- Charts -->
+            <div class="chart-container">
+                <div class="chart-header">
+                    <div class="chart-title">Project Progress</div>
+                    <select id="timeRange" style="padding: 8px; border-radius: 6px; border: 1px solid var(--light-gray);">
+                        <option>Last 7 Days</option>
+                        <option>Last 30 Days</option>
+                        <option>Last 90 Days</option>
+                    </select>
+                </div>
+                <canvas id="progressChart"></canvas>
+            </div>
+            
+            <!-- Tasks -->
+            <div class="tasks">
+                <div class="chart-header">
+                    <div class="chart-title">Recent Tasks</div>
+                    <button id="newTaskBtn" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> New Task
+                    </button>
+                </div>
+                
+                <ul class="task-list" id="taskList">
+                    <li class="task-item">
+                        <input type="checkbox" class="task-checkbox">
+                        <div class="task-content">
+                            <div class="task-title">Design Homepage Layout</div>
+                            <div class="task-details">
+                                <div><i class="far fa-calendar"></i> Due: Aug 30, 2023</div>
+                                <div><i class="fas fa-user"></i> Sarah Johnson</div>
+                            </div>
+                            <div class="project-progress">
+                                <div>Progress: 75%</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 75%; background-color: var(--primary);"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="task-priority priority-high">High</div>
+                    </li>
+                    
+                    <li class="task-item">
+                        <input type="checkbox" class="task-checkbox">
+                        <div class="task-content">
+                            <div class="task-title">Develop API Endpoints</div>
+                            <div class="task-details">
+                                <div><i class="far fa-calendar"></i> Due: Sep 2, 2023</div>
+                                <div><i class="fas fa-user"></i> Michael Chen</div>
+                            </div>
+                            <div class="project-progress">
+                                <div>Progress: 45%</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 45%; background-color: var(--info);"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="task-priority priority-medium">Medium</div>
+                    </li>
+                    
+                    <li class="task-item">
+                        <input type="checkbox" class="task-checkbox" checked>
+                        <div class="task-content">
+                            <div class="task-title">Create User Documentation</div>
+                            <div class="task-details">
+                                <div><i class="far fa-calendar"></i> Due: Aug 25, 2023</div>
+                                <div><i class="fas fa-user"></i> Emily Williams</div>
+                            </div>
+                            <div class="project-progress">
+                                <div>Progress: 100%</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 100%; background-color: var(--success);"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="task-priority priority-low">Low</div>
+                    </li>
+                    
+                    <li class="task-item">
+                        <input type="checkbox" class="task-checkbox">
+                        <div class="task-content">
+                            <div class="task-title">Testing & Debugging</div>
+                            <div class="task-details">
+                                <div><i class="far fa-calendar"></i> Due: Sep 5, 2023</div>
+                                <div><i class="fas fa-user"></i> David Miller</div>
+                            </div>
+                            <div class="project-progress">
+                                <div>Progress: 30%</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 30%; background-color: var(--warning);"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="task-priority priority-high">High</div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Team Page -->
+        <div id="team" class="page-content">
+            <div class="header">
+                <h2>Team Management</h2>
+                <button class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Add Member
+                </button>
+            </div>
+            
+            <div class="team-grid">
+                <div class="team-member">
+                    <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Team Member">
+                    <div class="member-name">Sarah Johnson</div>
+                    <div class="member-role">UI/UX Designer</div>
+                    <div class="member-stats">
+                        <div class="stat">
+                            <div class="stat-value">12</div>
+                            <div class="stat-label">Projects</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">92%</div>
+                            <div class="stat-label">Completion</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="team-member">
+                    <img src="https://randomuser.me/api/portraits/men/22.jpg" alt="Team Member">
+                    <div class="member-name">Michael Chen</div>
+                    <div class="member-role">Frontend Developer</div>
+                    <div class="member-stats">
+                        <div class="stat">
+                            <div class="stat-value">15</div>
+                            <div class="stat-label">Projects</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">87%</div>
+                            <div class="stat-label">Completion</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="team-member">
+                    <img src="https://randomuser.me/api/portraits/women/65.jpg" alt="Team Member">
+                    <div class="member-name">Emily Williams</div>
+                    <div class="member-role">Content Writer</div>
+                    <div class="member-stats">
+                        <div class="stat">
+                            <div class="stat-value">8</div>
+                            <div class="stat-label">Projects</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">96%</div>
+                            <div class="stat-label">Completion</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="team-member">
+                    <img src="https://randomuser.me/api/portraits/men/75.jpg" alt="Team Member">
+                    <div class="member-name">David Miller</div>
+                    <div class="member-role">Backend Developer</div>
+                    <div class="member-stats">
+                        <div class="stat">
+                            <div class="stat-value">18</div>
+                            <div class="stat-label">Projects</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">84%</div>
+                            <div class="stat-label">Completion</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Analytics Page -->
+        <div id="analytics" class="page-content">
+            <div class="header">
+                <h2>Project Analytics</h2>
+                <select style="padding: 8px; border-radius: 6px; border: 1px solid var(--light-gray);">
+                    <option>Last 7 Days</option>
+                    <option>Last 30 Days</option>
+                    <option>Last 90 Days</option>
+                </select>
+            </div>
+            
+            <div class="analytics-grid">
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <div class="chart-title">Project Completion Rate</div>
+                    </div>
+                    <canvas id="completionChart"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <div class="chart-title">Task Distribution</div>
+                    </div>
+                    <canvas id="taskDistributionChart"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <div class="chart-title">Team Performance</div>
+                    </div>
+                    <canvas id="performanceChart"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <div class="chart-title">Time Tracking</div>
+                    </div>
+                    <canvas id="timeChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Settings Page -->
+        <div id="settings" class="page-content">
+            <div class="header">
+                <h2>Settings</h2>
+            </div>
+            
+            <div class="settings-category">
+                <div class="settings-header">Account Settings</div>
+                
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h4>Email Notifications</h4>
+                        <p>Receive emails about project updates and tasks</p>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h4>Desktop Notifications</h4>
+                        <p>Get browser notifications for urgent tasks</p>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h4>Weekly Reports</h4>
+                        <p>Receive weekly productivity reports every Monday</p>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="settings-category">
+                <div class="settings-header">Workspace Settings</div>
+                
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h4>Auto Archive Projects</h4>
+                        <p>Automatically archive completed projects after 30 days</p>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h4>Task Reminders</h4>
+                        <p>Send reminders for upcoming due dates</p>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h4>Time Tracking</h4>
+                        <p>Enable time tracking for tasks and projects</p>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Projects Page -->
+        <div id="projects" class="page-content">
+            <div class="header">
+                <h2>Projects</h2>
+                <button class="btn btn-primary">
+                    <i class="fas fa-plus"></i> New Project
+                </button>
+            </div>
+            
+            <div class="tasks">
+                <div class="chart-header">
+                    <div class="chart-title">Active Projects</div>
+                    <div>
+                        <select style="padding: 8px; border-radius: 6px; border: 1px solid var(--light-gray); margin-right: 10px;">
+                            <option>Filter by Status</option>
+                            <option>Active</option>
+                            <option>Completed</option>
+                            <option>On Hold</option>
+                        </select>
+                        <select style="padding: 8px; border-radius: 6px; border: 1px solid var(--light-gray);">
+                            <option>Sort by Date</option>
+                            <option>Sort by Priority</option>
+                            <option>Sort by Name</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="task-list">
+                    <div class="task-item">
+                        <div class="task-content">
+                            <div class="task-title">Website Redesign</div>
+                            <div class="task-details">
+                                <div><i class="far fa-calendar"></i> Due: Sep 15, 2023</div>
+                                <div><i class="fas fa-user"></i> 5 Team Members</div>
+                            </div>
+                            <div class="project-progress">
+                                <div>Progress: 65%</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 65%; background-color: var(--primary);"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="task-priority priority-high">High</div>
+                    </div>
+                    
+                    <div class="task-item">
+                        <div class="task-content">
+                            <div class="task-title">Mobile App Development</div>
+                            <div class="task-details">
+                                <div><i class="far fa-calendar"></i> Due: Oct 5, 2023</div>
+                                <div><i class="fas fa-user"></i> 8 Team Members</div>
+                            </div>
+                            <div class="project-progress">
+                                <div>Progress: 35%</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 35%; background-color: var(--info);"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="task-priority priority-medium">Medium</div>
+                    </div>
+                    
+                    <div class="task-item">
+                        <div class="task-content">
+                            <div class="task-title">Marketing Campaign</div>
+                            <div class="task-details">
+                                <div><i class="far fa-calendar"></i> Due: Aug 30, 2023</div>
+                                <div><i class="fas fa-user"></i> 3 Team Members</div>
+                            </div>
+                            <div class="project-progress">
+                                <div>Progress: 80%</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 80%; background-color: var(--success);"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="task-priority priority-high">High</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Calendar Page -->
+        <div id="calendar" class="page-content">
+            <div class="header">
+                <h2>Calendar</h2>
+                <button class="btn btn-primary">
+                    <i class="fas fa-plus"></i> New Event
+                </button>
+            </div>
+            
+            <div class="chart-container">
+                <div class="chart-header">
+                    <div class="chart-title">September 2023</div>
+                    <div>
+                        <button class="btn" style="margin-right: 10px;"><i class="fas fa-chevron-left"></i></button>
+                        <button class="btn"><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; margin-top: 20px;">
+                    <div style="text-align: center; font-weight: 500; padding: 10px;">Sun</div>
+                    <div style="text-align: center; font-weight: 500; padding: 10px;">Mon</div>
+                    <div style="text-align: center; font-weight: 500; padding: 10px;">Tue</div>
+                    <div style="text-align: center; font-weight: 500; padding: 10px;">Wed</div>
+                    <div style="text-align: center; font-weight: 500; padding: 10px;">Thu</div>
+                    <div style="text-align: center; font-weight: 500; padding: 10px;">Fri</div>
+                    <div style="text-align: center; font-weight: 500; padding: 10px;">Sat</div>
+                    
+                    <!-- Calendar days -->
+                    <div style="height: 100px; background-color: #f8f9fa; border-radius: 8px; padding: 10px;">27</div>
+                    <div style="height: 100px; background-color: #f8f9fa; border-radius: 8px; padding: 10px;">28</div>
+                    <div style="height: 100px; background-color: #f8f9fa; border-radius: 8px; padding: 10px;">29</div>
+                    <div style="height: 100px; background-color: #f8f9fa; border-radius: 8px; padding: 10px;">30</div>
+                    <div style="height: 100px; background-color: #f8f9fa; border-radius: 8px; padding: 10px;">31</div>
+                    <div style="height: 100px; background-color: #e9ecef; border-radius: 8px; padding: 10px;">1</div>
+                    <div style="height: 100px; background-color: #e9ecef; border-radius: 8px; padding: 10px;">2</div>
+                    
+                    <!-- Week 1 -->
+                    <div style="height: 100px; background-color: #e9ecef; border-radius: 8px; padding: 10px;">3</div>
+                    <div style="height: 100px; background-color: white; border-radius: 8px; padding: 10px; border-left: 4px solid var(--primary);">
+                        <div>4</div>
+                        <div style="font-size: 12px; margin-top: 5px; background-color: rgba(67, 97, 238, 0.1); padding: 2px 5px; border-radius: 4px;">Team Meeting</div>
+                    </div>
+                    <div style="height: 100px; background-color: white; border-radius: 8px; padding: 10px;">5</div>
+                    <div style="height: 100px; background-color: white; border-radius: 8px; padding: 10px; border-left: 4px solid var(--warning);">
+                        <div>6</div>
+                        <div style="font-size: 12px; margin-top: 5px; background-color: rgba(247, 37, 133, 0.1); padding: 2px 5px; border-radius: 4px;">Deadline</div>
+                    </div>
+                    <div style="height: 100px; background-color: white; border-radius: 8px; padding: 10px;">7</div>
+                    <div style="height: 100px; background-color: white; border-radius: 8px; padding: 10px;">8</div>
+                    <div style="height: 100px; background-color: #e9ecef; border-radius: 8px; padding: 10px;">9</div>
+                    
+                    <!-- Continue with more weeks... -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Task Modal -->
+    <div class="modal" id="taskModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create New Task</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <form id="taskForm">
+                <div class="form-group">
+                    <label for="taskTitle">Task Title</label>
+                    <input type="text" id="taskTitle" required>
+                </div>
+                <div class="form-group">
+                    <label for="taskDescription">Description</label>
+                    <textarea id="taskDescription"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="taskAssignee">Assign To</label>
+                    <select id="taskAssignee">
+                        <option>Sarah Johnson</option>
+                        <option>Michael Chen</option>
+                        <option>Emily Williams</option>
+                        <option>David Miller</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="taskDueDate">Due Date</label>
+                    <input type="date" id="taskDueDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="taskPriority">Priority</label>
+                    <select id="taskPriority">
+                        <option>High</option>
+                        <option>Medium</option>
+                        <option>Low</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Create Task</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Initialize chart and functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize progress chart
+            const ctx = document.getElementById('progressChart').getContext('2d');
+            const progressChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Project A', 'Project B', 'Project C', 'Project D', 'Project E'],
+                    datasets: [{
+                        label: 'Completion %',
+                        data: [75, 90, 60, 45, 80],
+                        backgroundColor: [
+                            'rgba(67, 97, 238, 0.7)',
+                            'rgba(76, 201, 240, 0.7)',
+                            'rgba(114, 9, 183, 0.7)',
+                            'rgba(247, 37, 133, 0.7)',
+                            'rgba(58, 12, 163, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(67, 97, 238, 1)',
+                            'rgba(76, 201, 240, 1)',
+                            'rgba(114, 9, 183, 1)',
+                            'rgba(247, 37, 133, 1)',
+                            'rgba(58, 12, 163, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Initialize analytics charts
+            const completionCtx = document.getElementById('completionChart').getContext('2d');
+            const completionChart = new Chart(completionCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
+                    datasets: [{
+                        label: 'Completion Rate %',
+                        data: [65, 70, 76, 80, 85, 82, 88, 87],
+                        borderColor: 'rgba(67, 97, 238, 1)',
+                        backgroundColor: 'rgba(67, 97, 238, 0.1)',
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+            
+            const taskDistributionCtx = document.getElementById('taskDistributionChart').getContext('2d');
+            const taskDistributionChart = new Chart(taskDistributionCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Completed', 'In Progress', 'Not Started'],
+                    datasets: [{
+                        data: [65, 25, 10],
+                        backgroundColor: [
+                            'rgba(76, 201, 240, 0.7)',
+                            'rgba(67, 97, 238, 0.7)',
+                            'rgba(114, 9, 183, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(76, 201, 240, 1)',
+                            'rgba(67, 97, 238, 1)',
+                            'rgba(114, 9, 183, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                }
+            });
+            
+            // Navigation functionality
+            const navLinks = document.querySelectorAll('.nav-link');
+            const pageContents = document.querySelectorAll('.page-content');
+            
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const targetPage = this.getAttribute('data-page');
+                    
+                    // Update active navigation link
+                    navLinks.forEach(navLink => navLink.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Show target page, hide others
+                    pageContents.forEach(page => {
+                        if (page.id === targetPage) {
+                            page.style.display = 'block';
+                        } else {
+                            page.style.display = 'none';
+                        }
+                    });
+                });
+            });
+            
+            // Add task completion functionality
+            const checkboxes = document.querySelectorAll('.task-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    if (this.checked) {
+                        this.parentElement.style.opacity = '0.6';
+                        // Update completed tasks count
+                        document.querySelector('.stat-number:nth-child(2)').textContent = 
+                            parseInt(document.querySelector('.stat-number:nth-child(2)').textContent) + 1;
+                    } else {
+                        this.parentElement.style.opacity = '1';
+                        // Update completed tasks count
+                        document.querySelector('.stat-number:nth-child(2)').textContent = 
+                            parseInt(document.querySelector('.stat-number:nth-child(2)').textContent) - 1;
+                    }
+                });
+            });
+            
+            // Modal functionality
+            const modal = document.getElementById('taskModal');
+            const newTaskBtn = document.getElementById('newTaskBtn');
+            const closeModal = document.querySelector('.close-modal');
+            const taskForm = document.getElementById('taskForm');
+            
+            newTaskBtn.addEventListener('click', function() {
+                modal.style.display = 'flex';
+            });
+            
+            closeModal.addEventListener('click', function() {
+                modal.style.display = 'none';
+            });
+            
+            window.addEventListener('click', function(event) {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+            
+            // Form submission
+            taskForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const title = document.getElementById('taskTitle').value;
+                const assignee = document.getElementById('taskAssignee').value;
+                const dueDate = new Date(document.getElementById('taskDueDate').value);
+                const priority = document.getElementById('taskPriority').value;
+                
+                // Format date
+                const formattedDate = dueDate.toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric' 
+                });
+                
+                // Create new task element
+                const newTask = document.createElement('li');
+                newTask.className = 'task-item';
+                newTask.innerHTML = `
+                    <input type="checkbox" class="task-checkbox">
+                    <div class="task-content">
+                        <div class="task-title">${title}</div>
+                        <div class="task-details">
+                            <div><i class="far fa-calendar"></i> Due: ${formattedDate}</div>
+                            <div><i class="fas fa-user"></i> ${assignee}</div>
+                        </div>
+                        <div class="project-progress">
+                            <div>Progress: 0%</div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 0%; background-color: var(--primary);"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="task-priority priority-${priority.toLowerCase()}">${priority}</div>
+                `;
+                
+                // Add to task list
+                document.getElementById('taskList').prepend(newTask);
+                
+                // Add event listener to the new checkbox
+                newTask.querySelector('.task-checkbox').addEventListener('change', function() {
+                    if (this.checked) {
+                        this.parentElement.style.opacity = '0.6';
+                        // Update completed tasks count
+                        document.querySelector('.stat-number:nth-child(2)').textContent = 
+                            parseInt(document.querySelector('.stat-number:nth-child(2)').textContent) + 1;
+                    } else {
+                        this.parentElement.style.opacity = '1';
+                        // Update completed tasks count
+                        document.querySelector('.stat-number:nth-child(2)').textContent = 
+                            parseInt(document.querySelector('.stat-number:nth-child(2)').textContent) - 1;
+                    }
+                });
+                
+                // Update active projects count
+                document.querySelector('.stat-number:first-child').textContent = 
+                    parseInt(document.querySelector('.stat-number:first-child').textContent) + 1;
+                
+                // Close modal and reset form
+                modal.style.display = 'none';
+                taskForm.reset();
+            });
+            
+            // Time range selector functionality
+            document.getElementById('timeRange').addEventListener('change', function() {
+                // Simulate data change based on selection
+                const newData = {
+                    'Last 7 Days': [75, 90, 60, 45, 80],
+                    'Last 30 Days': [65, 85, 70, 55, 75],
+                    'Last 90 Days': [80, 95, 65, 60, 85]
+                };
+                
+                progressChart.data.datasets[0].data = newData[this.value];
+                progressChart.update();
+            });
+        });
+    </script>
+</body>
+</html>
